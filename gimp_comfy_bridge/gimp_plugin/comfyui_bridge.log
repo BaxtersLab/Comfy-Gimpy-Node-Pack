@@ -1,0 +1,2 @@
+2026-01-22 17:00:19,518 - gimp_plugin.comfyui_bridge - ERROR - Failed to register GIMP plugin functions: name 'register' is not defined
+2026-01-22 17:00:19,614 - comfyui_bridge - ERROR - Failed to register GIMP plugin functions: name 'register' is not defined

@@ -1,0 +1,16 @@
+{
+  "comfyui_endpoint": "http://localhost:8188",
+  "websocket_endpoint": "ws://localhost:8188/ws",
+  "temp_dir": "temp",
+  "default_workflow": "default",
+  "auto_save": true,
+  "progress_update_interval": 1.0,
+  "max_retries": 3,
+  "timeout": 300,
+  "image_format": "PNG",
+  "quality": 95,
+  "logging_level": "INFO",
+  "enable_websocket": true,
+  "batch_processing": false,
+  "preview_enabled": true
+}
