@@ -12,13 +12,15 @@ class Config:
     """
     Configuration class for the bridge.
     """
-    def __init__(self, host="localhost", port=8188, workflows_dir=None, temp_dir=None, log_level="INFO"):
+    def __init__(self, host="localhost", port=8188, comfyui_host="localhost", comfyui_port=8188, workflows_dir=None, temp_dir=None, log_level="INFO"):
         """
         Initialize configuration.
 
         Args:
-            host (str): Host address.
-            port (int): Port number.
+            host (str): Bridge host address.
+            port (int): Bridge port number.
+            comfyui_host (str): ComfyUI host address.
+            comfyui_port (int): ComfyUI port number.
             workflows_dir (str, optional): Workflows directory.
             temp_dir (str, optional): Temporary directory.
             log_level (str): Logging level.
@@ -26,9 +28,14 @@ class Config:
         if not isinstance(port, int) or not (1 <= port <= 65535):
             raise ValueError("Port must be an integer between 1 and 65535")
         
+        if not isinstance(comfyui_port, int) or not (1 <= comfyui_port <= 65535):
+            raise ValueError("ComfyUI port must be an integer between 1 and 65535")
+        
         self.host = host
         self.port = port
         self.base_url = f"http://{host}:{port}/gimp_bridge/"
+        self.comfyui_host = comfyui_host
+        self.comfyui_port = comfyui_port
         self.workflows_dir = Path(workflows_dir) if workflows_dir else Path(__file__).parent.parent / "examples" / "workflows"
         self.temp_dir = Path(temp_dir) if temp_dir else Path(__file__).parent.parent / "temp"
         self.log_level = log_level
@@ -48,10 +55,13 @@ def load_config():
         host = os.getenv("COMFY_HOST", "localhost")
         port_str = os.getenv("COMFY_PORT", "8188")
         port = int(port_str)
+        comfyui_host = os.getenv("COMFYUI_HOST", "localhost")
+        comfyui_port_str = os.getenv("COMFYUI_PORT", "8188")
+        comfyui_port = int(comfyui_port_str)
         workflows_dir = os.getenv("COMFY_WORKFLOWS_DIR")
         temp_dir = os.getenv("COMFY_TEMP_DIR")
         log_level = os.getenv("COMFY_LOG_LEVEL", "INFO")
-        return Config(host, port, workflows_dir, temp_dir, log_level)
+        return Config(host, port, comfyui_host, comfyui_port, workflows_dir, temp_dir, log_level)
     except ValueError as e:
         logger.error(f"Invalid configuration: {e}")
         raise
