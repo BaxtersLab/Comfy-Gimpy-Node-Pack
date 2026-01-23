@@ -30,7 +30,15 @@ class SyncManager:
     def notify_mobile_device(self, device_id: str, message: Dict[str, Any]):
         """Send a notification to a mobile device."""
         # This would integrate with the actual mobile communication system
-        logger.info(f"Notification sent to device {device_id}: {message}")
+        # For now, we'll store the message for the device
+        if device_id not in self.mobile_devices:
+            self.mobile_devices[device_id] = {'messages': []}
+
+        if 'messages' not in self.mobile_devices[device_id]:
+            self.mobile_devices[device_id]['messages'] = []
+
+        self.mobile_devices[device_id]['messages'].append(message)
+        logger.info(f"Notification queued for device {device_id}: {message.get('type', 'unknown')}")
 
     def execute_workflow(self, workflow_id: str, parameters: Dict[str, Any]) -> str:
         """Execute a workflow."""
