@@ -30,6 +30,7 @@ class ToolboxIcon(Enum):
     TASKS = "tasks"
     MARKETPLACE = "marketplace"
     SETTINGS = "settings"
+    MOBILE_SYNC = "mobile_sync"
 
     # Action icons
     ADD = "add"
@@ -99,6 +100,7 @@ class IconRegistry:
                 ToolboxIcon.TASKS.value: gimp.ICON_TOOL_ZOOM,
                 ToolboxIcon.MARKETPLACE.value: gimp.ICON_TOOL_MOVE,
                 ToolboxIcon.SETTINGS.value: gimp.ICON_PREFERENCES_SYSTEM,
+                ToolboxIcon.MOBILE_SYNC.value: gimp.ICON_NETWORK_WIRELESS,
 
                 ToolboxIcon.ADD.value: gimp.ICON_ADD,
                 ToolboxIcon.REMOVE.value: gimp.ICON_REMOVE,

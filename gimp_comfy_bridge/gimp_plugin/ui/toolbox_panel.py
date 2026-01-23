@@ -281,7 +281,9 @@ class ToolboxPanel:
             ToolboxType.MARKETPLACE: ["installed", "browse", "categories", "search"],
             ToolboxType.SETTINGS: ["general", "appearance", "performance", "advanced"],
             ToolboxType.BRAND_KITS: ["recent", "favorites", "categories", "create", "apply"],
-            ToolboxType.LAYOUT_OPTIMIZATION: ["analyze", "optimize", "variants", "overlays", "settings"]
+            ToolboxType.LAYOUT_OPTIMIZATION: ["analyze", "optimize", "variants", "overlays", "settings"],
+            ToolboxType.EXTENSIONS: ["installed", "marketplace", "settings"],
+            ToolboxType.MOBILE_SYNC: ["devices", "sync", "remote_control", "preview"]
         }
         return sections_map.get(self.toolbox_type, ["general"])
 
@@ -325,6 +327,8 @@ class ToolboxPanel:
             self._populate_layout_optimization_section(section)
         elif self.toolbox_type == ToolboxType.EXTENSIONS:
             self._populate_extensions_section(section)
+        elif self.toolbox_type == ToolboxType.MOBILE_SYNC:
+            self._populate_mobile_sync_section(section)
         else:
             # Generic content for other toolboxes
             self._populate_generic_section(section)
@@ -880,6 +884,111 @@ class ToolboxPanel:
         """Handle reload all extensions button."""
         logger.debug("Reloading all extensions")
         # TODO: Reload all extensions
+
+    def _populate_mobile_sync_section(self, section: PanelSection):
+        """Populate content for mobile sync section."""
+        if section.name == "devices":
+            # Show paired mobile devices
+            self._add_label(section, "Paired Devices")
+            self._add_button(section, "Generate Pairing QR", self._on_generate_pairing_qr)
+            self._add_button(section, "Refresh Device List", self._on_refresh_devices)
+
+            # Mock device list
+            devices = ["iPhone 13", "Samsung Galaxy", "iPad Pro"]
+            for device in devices:
+                self._add_button(section, f"Connect to {device}", self._on_connect_device)
+
+        elif section.name == "sync":
+            # Asset synchronization controls
+            self._add_label(section, "Asset Synchronization")
+            self._add_button(section, "Push Current Image", self._on_push_current_image)
+            self._add_button(section, "Push Workflow", self._on_push_workflow)
+            self._add_button(section, "Pull from Device", self._on_pull_from_device)
+            self._add_toggle(section, "Auto-sync on Save", True, self._on_toggle_auto_sync)
+
+        elif section.name == "remote_control":
+            # Remote control features
+            self._add_label(section, "Remote Control")
+            self._add_button(section, "Start Remote Session", self._on_start_remote_session)
+            self._add_button(section, "Execute Workflow Remotely", self._on_execute_remote_workflow)
+            self._add_toggle(section, "Allow Remote Control", False, self._on_toggle_remote_control)
+
+        elif section.name == "preview":
+            # Live preview controls
+            self._add_label(section, "Live Preview")
+            self._add_button(section, "Start Preview Stream", self._on_start_preview_stream)
+            self._add_button(section, "Stop Preview Stream", self._on_stop_preview_stream)
+            self._add_combo_box(section, "Preview Quality", ["low", "medium", "high"],
+                              "medium", self._on_preview_quality_changed)
+
+    def _on_generate_pairing_qr(self, button: Any):
+        """Handle generate pairing QR button."""
+        logger.debug("Generate pairing QR clicked")
+        # TODO: Generate and display pairing QR code
+
+    def _on_refresh_devices(self, button: Any):
+        """Handle refresh devices button."""
+        logger.debug("Refresh devices clicked")
+        # TODO: Refresh list of paired devices
+
+    def _on_connect_device(self, button: Any):
+        """Handle connect to device button."""
+        device_name = getattr(button, '_device_name', 'unknown')
+        logger.debug(f"Connect to device: {device_name}")
+        # TODO: Initiate connection to mobile device
+
+    def _on_push_current_image(self, button: Any):
+        """Handle push current image button."""
+        logger.debug("Push current image clicked")
+        # TODO: Push current GIMP image to mobile device
+
+    def _on_push_workflow(self, button: Any):
+        """Handle push workflow button."""
+        logger.debug("Push workflow clicked")
+        # TODO: Push current workflow to mobile device
+
+    def _on_pull_from_device(self, button: Any):
+        """Handle pull from device button."""
+        logger.debug("Pull from device clicked")
+        # TODO: Pull assets/workflows from mobile device
+
+    def _on_toggle_auto_sync(self, toggle: Any):
+        """Handle auto-sync toggle."""
+        active = toggle.get_active()
+        logger.debug(f"Auto-sync toggled: {active}")
+        # TODO: Enable/disable automatic synchronization
+
+    def _on_start_remote_session(self, button: Any):
+        """Handle start remote session button."""
+        logger.debug("Start remote session clicked")
+        # TODO: Start remote control session with mobile device
+
+    def _on_execute_remote_workflow(self, button: Any):
+        """Handle execute remote workflow button."""
+        logger.debug("Execute remote workflow clicked")
+        # TODO: Execute workflow remotely via mobile device
+
+    def _on_toggle_remote_control(self, toggle: Any):
+        """Handle remote control toggle."""
+        active = toggle.get_active()
+        logger.debug(f"Remote control toggled: {active}")
+        # TODO: Enable/disable remote control features
+
+    def _on_start_preview_stream(self, button: Any):
+        """Handle start preview stream button."""
+        logger.debug("Start preview stream clicked")
+        # TODO: Start live preview streaming to mobile device
+
+    def _on_stop_preview_stream(self, button: Any):
+        """Handle stop preview stream button."""
+        logger.debug("Stop preview stream clicked")
+        # TODO: Stop live preview streaming
+
+    def _on_preview_quality_changed(self, combo: Any):
+        """Handle preview quality change."""
+        quality = combo.get_active_text()
+        logger.debug(f"Preview quality changed to: {quality}")
+        # TODO: Update preview stream quality
 
     def get_container(self) -> Any:
         """Get the main container widget."""

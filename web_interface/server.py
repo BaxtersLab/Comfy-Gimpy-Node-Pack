@@ -27,16 +27,18 @@ class WebServer:
     Web server for the Comfy Gimpy Studio interface.
     """
 
-    def __init__(self, host: str = "localhost", port: int = 8080):
+    def __init__(self, host: str = "localhost", port: int = 8080, mobile_bridge=None):
         """
         Initialize the web server.
 
         Args:
             host (str): Server host
             port (int): Server port
+            mobile_bridge: Mobile bridge instance for mobile integration
         """
         self.host = host
         self.port = port
+        self.mobile_bridge = mobile_bridge
         self.app = None
         self.runner = None
         self.site = None
@@ -100,6 +102,19 @@ class WebServer:
         self.app.router.add_get('/api/execution/jobs', self._handle_list_jobs)
         self.app.router.add_post('/api/execution/batch-status', self._handle_batch_status)
 
+        # Mobile API routes (Phase 20)
+        if self.mobile_bridge:
+            self.app.router.add_get('/api/mobile/qr', self._handle_mobile_qr)
+            self.app.router.add_get('/api/mobile/devices', self._handle_mobile_devices)
+            self.app.router.add_post('/api/mobile/pair', self._handle_mobile_pair)
+            self.app.router.add_post('/api/mobile/push/{device_id}', self._handle_mobile_push)
+            self.app.router.add_post('/api/mobile/pull/{device_id}', self._handle_mobile_pull)
+            self.app.router.add_post('/api/mobile/preview/start', self._handle_preview_start)
+            self.app.router.add_post('/api/mobile/preview/frame', self._handle_preview_frame)
+            self.app.router.add_post('/api/mobile/preview/stop', self._handle_preview_stop)
+            self.app.router.add_post('/api/mobile/remote/{device_id}', self._handle_remote_command)
+            self.app.router.add_get('/api/mobile/status', self._handle_mobile_status)
+
         # UI routes
         self.app.router.add_get('/', self._handle_index)
         self.app.router.add_get('/templates', self._handle_templates_page)
@@ -108,6 +123,7 @@ class WebServer:
         self.app.router.add_get('/workflows', self._handle_workflows_page)
         self.app.router.add_get('/settings', self._handle_settings_page)
         self.app.router.add_get('/execution', self._handle_execution_page)
+        self.app.router.add_get('/mobile', self._handle_mobile_page)
 
     async def _handle_index(self, request):
         """Handle index page."""
@@ -334,6 +350,218 @@ class WebServer:
     async def _handle_execution_page(self, request):
         """Handle execution page."""
         return web.FileResponse(Path(__file__).parent / "ui" / "execution.html")
+
+    async def _handle_mobile_page(self, request):
+        """Handle mobile page."""
+        return web.FileResponse(Path(__file__).parent / "ui" / "mobile.html")
+
+    # Mobile API handlers
+    async def _handle_mobile_qr(self, request):
+        """Handle mobile QR code generation."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            # Generate pairing QR code
+            pairing_token = self.mobile_bridge.auth.generate_pairing_token()
+
+            # Generate QR code data URL
+            import qrcode
+            import io
+            import base64
+
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(f"comfy-gimpy://pair?token={pairing_token}")
+            qr.make(fit=True)
+
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format="PNG")
+            qr_data = base64.b64encode(buffer.getvalue()).decode()
+
+            return web.json_response({
+                "qr_data": f"data:image/png;base64,{qr_data}",
+                "pairing_token": pairing_token,
+                "expires_in": 300
+            })
+
+        except Exception as e:
+            logger.error(f"Failed to generate mobile QR: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_mobile_devices(self, request):
+        """Handle mobile devices list."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            devices = self.mobile_bridge.get_mobile_devices()
+            return web.json_response({"devices": devices})
+
+        except Exception as e:
+            logger.error(f"Failed to get mobile devices: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_mobile_pair(self, request):
+        """Handle mobile device pairing."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            data = await request.json()
+            device_id = data.get('device_id')
+            pairing_token = data.get('pairing_token')
+
+            if not device_id or not pairing_token:
+                return web.json_response({"error": "Device ID and pairing token required"}, status=400)
+
+            # Handle pairing through mobile bridge
+            result = self.mobile_bridge.handle_mobile_message(device_id, {
+                'type': 'auth_request',
+                'pairing_token': pairing_token
+            })
+
+            return web.json_response(result)
+
+        except Exception as e:
+            logger.error(f"Failed to pair mobile device: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_mobile_push(self, request):
+        """Handle mobile asset push."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            device_id = request.match_info['device_id']
+            data = await request.json()
+
+            asset_path = data.get('asset_path')
+            asset_type = data.get('asset_type', 'file')
+
+            if not asset_path:
+                return web.json_response({"error": "Asset path required"}, status=400)
+
+            push_id = self.mobile_bridge.push_asset_to_device(device_id, asset_path, asset_type)
+            return web.json_response({"push_id": push_id, "status": "queued"})
+
+        except Exception as e:
+            logger.error(f"Failed to push to mobile device: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_mobile_pull(self, request):
+        """Handle mobile asset pull."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            device_id = request.match_info['device_id']
+            data = await request.json()
+
+            pull_type = data.get('type', 'asset')
+            asset_type = data.get('asset_type')
+            asset_path = data.get('asset_path')
+
+            if pull_type == 'asset':
+                pull_id = self.mobile_bridge.request_asset_from_device(device_id, asset_type, asset_path)
+            elif pull_type == 'workflow':
+                pull_id = self.mobile_bridge.request_workflow_from_device(device_id, data.get('workflow_name'))
+            else:
+                return web.json_response({"error": "Invalid pull type"}, status=400)
+
+            return web.json_response({"pull_id": pull_id, "status": "requested"})
+
+        except Exception as e:
+            logger.error(f"Failed to pull from mobile device: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_preview_start(self, request):
+        """Handle preview stream start."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            data = await request.json()
+            preview_id = data.get('preview_id', 'default_preview')
+            preview_type = data.get('preview_type', 'image')
+
+            self.mobile_bridge.start_preview_stream(preview_id, preview_type)
+            return web.json_response({"preview_id": preview_id, "status": "started"})
+
+        except Exception as e:
+            logger.error(f"Failed to start preview: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_preview_frame(self, request):
+        """Handle preview frame sending."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            data = await request.json()
+            preview_id = data.get('preview_id', 'default_preview')
+            frame_data = data.get('frame_data')
+            frame_type = data.get('frame_type', 'image')
+
+            if frame_data:
+                self.mobile_bridge.send_preview_frame(preview_id, frame_data, frame_type)
+
+            return web.json_response({"status": "sent"})
+
+        except Exception as e:
+            logger.error(f"Failed to send preview frame: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_preview_stop(self, request):
+        """Handle preview stream stop."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            data = await request.json()
+            preview_id = data.get('preview_id', 'default_preview')
+
+            self.mobile_bridge.preview.stop_preview_stream(preview_id)
+            return web.json_response({"status": "stopped"})
+
+        except Exception as e:
+            logger.error(f"Failed to stop preview: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_remote_command(self, request):
+        """Handle remote control command."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            device_id = request.match_info['device_id']
+            data = await request.json()
+
+            result = self.mobile_bridge.handle_mobile_message(device_id, {
+                'type': 'remote_command',
+                'session_id': data.get('session_id'),
+                'command': data.get('command'),
+                'parameters': data.get('parameters', {})
+            })
+
+            return web.json_response(result)
+
+        except Exception as e:
+            logger.error(f"Failed to send remote command: {e}")
+            return web.json_response({"error": str(e)}, status=500)
+
+    async def _handle_mobile_status(self, request):
+        """Handle mobile bridge status."""
+        if not self.mobile_bridge:
+            return web.json_response({"error": "Mobile bridge not available"}, status=503)
+
+        try:
+            status = self.mobile_bridge.get_system_status()
+            return web.json_response({"status": status})
+
+        except Exception as e:
+            logger.error(f"Failed to get mobile status: {e}")
+            return web.json_response({"error": str(e)}, status=500)
 
     # Phase 9 - Execution API handlers
     async def _handle_execute_workflow(self, request):

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Companion - Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mobile Companion</h1>
+            <p>Remote control and asset synchronization with mobile devices</p>
+        </header>
+
+        <div class="content">
+            <div class="section">
+                <h2>Device Pairing</h2>
+                <div id="pairing-section">
+                    <button id="generate-qr" class="btn btn-primary">Generate Pairing QR Code</button>
+                    <div id="qr-container" style="display: none;">
+                        <h3>Scan this QR code with your mobile app</h3>
+                        <img id="qr-code" src="" alt="Pairing QR Code">
+                        <p id="pairing-token"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Paired Devices</h2>
+                <div id="devices-section">
+                    <button id="refresh-devices" class="btn btn-secondary">Refresh Devices</button>
+                    <div id="devices-list">
+                        <p>Loading devices...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Asset Synchronization</h2>
+                <div id="sync-section">
+                    <div class="sync-controls">
+                        <button id="push-image" class="btn btn-success">Push Current Image</button>
+                        <button id="push-workflow" class="btn btn-success">Push Workflow</button>
+                        <button id="pull-assets" class="btn btn-info">Pull from Device</button>
+                    </div>
+                    <div class="sync-status">
+                        <h3>Sync Status</h3>
+                        <div id="sync-status">No active sync operations</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Remote Control</h2>
+                <div id="remote-section">
+                    <div class="remote-controls">
+                        <button id="start-session" class="btn btn-warning">Start Remote Session</button>
+                        <button id="execute-remote" class="btn btn-danger">Execute Workflow Remotely</button>
+                    </div>
+                    <div class="remote-status">
+                        <h3>Session Status</h3>
+                        <div id="remote-status">No active remote sessions</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>Live Preview</h2>
+                <div id="preview-section">
+                    <div class="preview-controls">
+                        <button id="start-preview" class="btn btn-primary">Start Preview Stream</button>
+                        <button id="stop-preview" class="btn btn-secondary">Stop Preview Stream</button>
+                        <select id="preview-quality">
+                            <option value="low">Low Quality</option>
+                            <option value="medium" selected>Medium Quality</option>
+                            <option value="high">High Quality</option>
+                        </select>
+                    </div>
+                    <div class="preview-status">
+                        <h3>Preview Status</h3>
+                        <div id="preview-status">Preview stream not active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/mobile.js"></script>
+</body>
+</html>

@@ -35,6 +35,7 @@ class ToolboxType(Enum):
     BRAND_KITS = "brand_kits"
     LAYOUT_OPTIMIZATION = "layout_optimization"
     EXTENSIONS = "extensions"
+    MOBILE_SYNC = "mobile_sync"
 
 
 @dataclass
@@ -117,6 +118,12 @@ class UIConfig:
                 state=ToolboxState.CLOSED,
                 order=7,
                 expanded_sections=["general", "advanced"]
+            ),
+            ToolboxType.MOBILE_SYNC.value: ToolboxConfig(
+                toolbox_type=ToolboxType.MOBILE_SYNC,
+                state=ToolboxState.CLOSED,
+                order=8,
+                expanded_sections=["devices", "sync"]
             )
         }
 
