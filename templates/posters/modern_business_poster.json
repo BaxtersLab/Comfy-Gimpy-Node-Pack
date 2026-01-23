@@ -1,0 +1,205 @@
+{
+  "name": "Modern Business Poster",
+  "description": "A clean, professional poster template with space for company logo, headline, and call-to-action. Perfect for events, promotions, or announcements.",
+  "category": "posters",
+  "version": "1.0.0",
+  "author": "Comfy Gimpy Studio",
+  "tags": ["business", "modern", "professional", "event", "promotion"],
+  "dimensions": {
+    "width": 1080,
+    "height": 1920,
+    "dpi": 300
+  },
+  "background_color": "#ffffff",
+  "layers": [
+    {
+      "name": "background",
+      "type": "background",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920
+      }
+    },
+    {
+      "name": "company_logo",
+      "type": "image",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 100,
+        "width": 200,
+        "height": 200
+      }
+    },
+    {
+      "name": "headline_text",
+      "type": "text",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 400,
+        "width": 880,
+        "height": 150
+      }
+    },
+    {
+      "name": "subtitle_text",
+      "type": "text",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 600,
+        "width": 880,
+        "height": 100
+      }
+    },
+    {
+      "name": "hero_image",
+      "type": "image",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 750,
+        "width": 880,
+        "height": 600
+      }
+    },
+    {
+      "name": "call_to_action",
+      "type": "text",
+      "visible": true,
+      "opacity": 100,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 1400,
+        "width": 880,
+        "height": 80
+      }
+    },
+    {
+      "name": "footer_text",
+      "type": "text",
+      "visible": true,
+      "opacity": 80,
+      "blend_mode": "NORMAL",
+      "position": {
+        "x": 100,
+        "y": 1800,
+        "width": 880,
+        "height": 60
+      }
+    }
+  ],
+  "placeholders": [
+    {
+      "id": "company_logo",
+      "type": "logo",
+      "layer_name": "company_logo",
+      "label": "Company Logo",
+      "default_content": "Upload your company logo",
+      "constraints": {
+        "allowed_formats": ["png", "jpg", "svg"],
+        "min_dimensions": {
+          "width": 100,
+          "height": 100
+        }
+      }
+    },
+    {
+      "id": "headline",
+      "type": "text",
+      "layer_name": "headline_text",
+      "label": "Main Headline",
+      "default_content": "Your Amazing Headline Here",
+      "constraints": {
+        "max_length": 50
+      }
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "layer_name": "subtitle_text",
+      "label": "Subtitle",
+      "default_content": "Add your compelling subtitle",
+      "constraints": {
+        "max_length": 100
+      }
+    },
+    {
+      "id": "hero_image",
+      "type": "image",
+      "layer_name": "hero_image",
+      "label": "Hero Image",
+      "default_content": "Upload your main image",
+      "constraints": {
+        "allowed_formats": ["png", "jpg", "jpeg"],
+        "min_dimensions": {
+          "width": 800,
+          "height": 400
+        }
+      }
+    },
+    {
+      "id": "cta_text",
+      "type": "text",
+      "layer_name": "call_to_action",
+      "label": "Call to Action",
+      "default_content": "Learn More Today!",
+      "constraints": {
+        "max_length": 30
+      }
+    },
+    {
+      "id": "footer",
+      "type": "text",
+      "layer_name": "footer_text",
+      "label": "Footer Text",
+      "default_content": "© 2024 Your Company. All rights reserved.",
+      "constraints": {
+        "max_length": 100
+      }
+    }
+  ],
+  "workflow_bindings": {
+    "default_workflow": "poster_generation_v1",
+    "alternative_workflows": ["poster_minimal", "poster_detailed"],
+    "parameter_mappings": {
+      "company_logo": "logo_input",
+      "headline": "title_text",
+      "subtitle": "subtitle_text",
+      "hero_image": "main_image",
+      "cta_text": "cta_input",
+      "footer": "footer_text"
+    }
+  },
+  "style_requirements": {
+    "recommended_styles": ["corporate", "modern", "minimalist"],
+    "compatible_models": ["SDXL", "SD1.5"],
+    "style_injection_points": ["background", "hero_image", "text_styling"]
+  },
+  "dependencies": {
+    "workflows": ["poster_generation_v1"],
+    "models": ["base_model.safetensors"],
+    "fonts": ["Montserrat-Bold.ttf", "Montserrat-Regular.ttf"]
+  },
+  "metadata": {
+    "created_date": "2024-01-15",
+    "last_modified": "2024-01-15T10:30:00Z",
+    "license": "MIT",
+    "usage_count": 0
+  }
+}

@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brand Kit Manager - Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <style>
+        .brand-kit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .brand-kit-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .brand-kit-preview {
+            width: 100%;
+            height: 150px;
+            background: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+        }
+
+        .brand-kit-form {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 10px 0;
+        }
+
+        .color-swatch {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            border: 2px solid #ddd;
+            cursor: pointer;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Brand Kit Manager</h1>
+
+        <div class="toolbar">
+            <button id="create-kit-btn" class="btn btn-primary">Create New Brand Kit</button>
+            <button id="refresh-btn" class="btn btn-secondary">Refresh</button>
+        </div>
+
+        <div id="brand-kits-container">
+            <div class="brand-kit-grid" id="brand-kit-grid">
+                <!-- Brand kits will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Create/Edit Brand Kit Modal -->
+        <div id="brand-kit-modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Create Brand Kit</h2>
+                <form id="brand-kit-form" class="brand-kit-form">
+                    <div class="form-group">
+                        <label for="kit-id">Kit ID:</label>
+                        <input type="text" id="kit-id" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kit-name">Name:</label>
+                        <input type="text" id="kit-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kit-description">Description:</label>
+                        <textarea id="kit-description" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Colors:</label>
+                        <div id="color-palette" class="color-palette">
+                            <!-- Color swatches will be added here -->
+                        </div>
+                        <button type="button" id="add-color-btn" class="btn btn-secondary">Add Color</button>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kit-fonts">Fonts (JSON):</label>
+                        <textarea id="kit-fonts" rows="4" placeholder='{"heading": "Arial", "body": "Helvetica"}'></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kit-styles">Styles (JSON):</label>
+                        <textarea id="kit-styles" rows="6" placeholder='{"primary": {"colors": ["#FF0000", "#00FF00"]}}'></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-success">Save Brand Kit</button>
+                        <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentBrandKits = [];
+        let editingKit = null;
+
+        // DOM elements
+        const brandKitGrid = document.getElementById('brand-kit-grid');
+        const brandKitModal = document.getElementById('brand-kit-modal');
+        const brandKitForm = document.getElementById('brand-kit-form');
+        const modalTitle = document.getElementById('modal-title');
+        const colorPalette = document.getElementById('color-palette');
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            loadBrandKits();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Create kit button
+            document.getElementById('create-kit-btn').addEventListener('click', () => {
+                openCreateModal();
+            });
+
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', () => {
+                loadBrandKits();
+            });
+
+            // Form submission
+            brandKitForm.addEventListener('submit', handleFormSubmit);
+
+            // Cancel button
+            document.getElementById('cancel-btn').addEventListener('click', () => {
+                closeModal();
+            });
+
+            // Add color button
+            document.getElementById('add-color-btn').addEventListener('click', () => {
+                addColorSwatch();
+            });
+
+            // Close modal on outside click
+            brandKitModal.addEventListener('click', (e) => {
+                if (e.target === brandKitModal) {
+                    closeModal();
+                }
+            });
+        }
+
+        async function loadBrandKits() {
+            try {
+                const response = await fetch('/api/brandkit/list');
+                const data = await response.json();
+
+                if (data.success) {
+                    currentBrandKits = data.brand_kits;
+                    renderBrandKits(data.brand_kits);
+                } else {
+                    showError('Failed to load brand kits: ' + data.error);
+                }
+            } catch (error) {
+                showError('Failed to load brand kits: ' + error.message);
+            }
+        }
+
+        function renderBrandKits(kits) {
+            brandKitGrid.innerHTML = '';
+
+            if (kits.length === 0) {
+                brandKitGrid.innerHTML = '<p>No brand kits found. Create your first brand kit!</p>';
+                return;
+            }
+
+            kits.forEach(kit => {
+                const card = createBrandKitCard(kit);
+                brandKitGrid.appendChild(card);
+            });
+        }
+
+        function createBrandKitCard(kit) {
+            const card = document.createElement('div');
+            card.className = 'brand-kit-card';
+
+            const colors = kit.colors || {};
+            const colorSwatches = Object.values(colors).slice(0, 5).map(color =>
+                `<div class="color-swatch" style="background-color: ${color}"></div>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="brand-kit-preview">
+                    <div class="color-palette">
+                        ${colorSwatches}
+                    </div>
+                </div>
+                <h3>${kit.name}</h3>
+                <p>${kit.description || 'No description'}</p>
+                <div class="card-actions">
+                    <button class="btn btn-primary" onclick="editBrandKit('${kit.id}')">Edit</button>
+                    <button class="btn btn-secondary" onclick="previewBrandKit('${kit.id}')">Preview</button>
+                    <button class="btn btn-success" onclick="applyBrandKit('${kit.id}')">Apply</button>
+                </div>
+            `;
+
+            return card;
+        }
+
+        function openCreateModal(kit = null) {
+            editingKit = kit;
+            modalTitle.textContent = kit ? 'Edit Brand Kit' : 'Create Brand Kit';
+
+            if (kit) {
+                // Populate form with existing data
+                document.getElementById('kit-id').value = kit.id || '';
+                document.getElementById('kit-name').value = kit.name || '';
+                document.getElementById('kit-description').value = kit.description || '';
+                document.getElementById('kit-fonts').value = JSON.stringify(kit.fonts || {}, null, 2);
+                document.getElementById('kit-styles').value = JSON.stringify(kit.styles || {}, null, 2);
+
+                // Clear and repopulate colors
+                colorPalette.innerHTML = '';
+                if (kit.colors) {
+                    Object.entries(kit.colors).forEach(([name, color]) => {
+                        addColorSwatch(name, color);
+                    });
+                }
+            } else {
+                // Clear form
+                brandKitForm.reset();
+                colorPalette.innerHTML = '';
+            }
+
+            brandKitModal.style.display = 'block';
+        }
+
+        function closeModal() {
+            brandKitModal.style.display = 'none';
+            editingKit = null;
+        }
+
+        function addColorSwatch(name = '', color = '#000000') {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch';
+            swatch.style.backgroundColor = color;
+            swatch.title = name || 'Unnamed color';
+
+            swatch.addEventListener('click', () => {
+                const newColor = prompt('Enter color name and hex value (e.g., "primary:#FF0000"):', `${name}:${color}`);
+                if (newColor) {
+                    const [newName, newHex] = newColor.split(':');
+                    if (newName && newHex) {
+                        swatch.title = newName;
+                        swatch.style.backgroundColor = newHex;
+                    }
+                }
+            });
+
+            colorPalette.appendChild(swatch);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const kitData = {
+                id: document.getElementById('kit-id').value,
+                name: document.getElementById('kit-name').value,
+                description: document.getElementById('kit-description').value,
+                colors: {},
+                fonts: {},
+                styles: {},
+                workflows: {}
+            };
+
+            // Parse colors from swatches
+            const swatches = colorPalette.querySelectorAll('.color-swatch');
+            swatches.forEach((swatch, index) => {
+                const name = swatch.title || `color_${index + 1}`;
+                const color = swatch.style.backgroundColor;
+                kitData.colors[name] = color;
+            });
+
+            // Parse fonts and styles
+            try {
+                const fontsText = document.getElementById('kit-fonts').value;
+                if (fontsText) {
+                    kitData.fonts = JSON.parse(fontsText);
+                }
+
+                const stylesText = document.getElementById('kit-styles').value;
+                if (stylesText) {
+                    kitData.styles = JSON.parse(stylesText);
+                }
+            } catch (error) {
+                showError('Invalid JSON in fonts or styles: ' + error.message);
+                return;
+            }
+
+            try {
+                let response;
+                if (editingKit) {
+                    // Update existing kit
+                    response = await fetch('/api/brandkit/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ brand_kit: kitData })
+                    });
+                } else {
+                    // Create new kit
+                    response = await fetch('/api/brandkit/create', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(kitData)
+                    });
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showSuccess(`Brand kit ${editingKit ? 'updated' : 'created'} successfully!`);
+                    closeModal();
+                    loadBrandKits();
+                } else {
+                    showError('Failed to save brand kit: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                showError('Failed to save brand kit: ' + error.message);
+            }
+        }
+
+        // Global functions for card buttons
+        function editBrandKit(kitId) {
+            const kit = currentBrandKits.find(k => k.id === kitId);
+            if (kit) {
+                openCreateModal(kit);
+            }
+        }
+
+        function previewBrandKit(kitId) {
+            window.open(`/api/brandkit/preview/${kitId}`, '_blank');
+        }
+
+        async function applyBrandKit(kitId) {
+            // This would typically open an application interface
+            // For now, just show a message
+            showSuccess(`Brand kit '${kitId}' ready for application. Use in templates, styles, or workflows.`);
+        }
+
+        function showError(message) {
+            alert('Error: ' + message);
+        }
+
+        function showSuccess(message) {
+            alert('Success: ' + message);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Comfy Gimpy Studio</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/models">Models</a>
+            <a href="/templates">Templates</a>
+            <a href="/styles">Styles</a>
+            <a href="/workflows">Workflows</a>
+            <a href="/settings">Settings</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="welcome">
+            <h2>Welcome to Comfy Gimpy Studio</h2>
+            <p>Manage your AI models, templates, styles, and workflows for GIMP integration.</p>
+
+            <div class="stats">
+                <div class="stat-card">
+                    <h3>Models</h3>
+                    <p id="model-count">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Templates</h3>
+                    <p id="template-count">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Styles</h3>
+                    <p id="style-count">Loading...</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Workflows</h3>
+                    <p id="workflow-count">Loading...</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="recent-activity">
+            <h2>Recent Activity</h2>
+            <div id="activity-log">
+                <p>Loading recent activity...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Comfy Gimpy Studio</p>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

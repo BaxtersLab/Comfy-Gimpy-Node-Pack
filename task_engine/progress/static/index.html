@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comfy Gimpy Studio - Task Progress</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .task-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .task-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .task-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+        }
+        .status-pending { background-color: #ff9800; }
+        .status-running { background-color: #2196F3; }
+        .status-completed { background-color: #4CAF50; }
+        .status-failed { background-color: #f44336; }
+        .status-cancelled { background-color: #9e9e9e; }
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .cancel-btn:hover {
+            background-color: #d32f2f;
+        }
+        .message {
+            color: #666;
+            font-style: italic;
+        }
+        .eta {
+            color: #2196F3;
+            font-weight: bold;
+        }
+        .stats {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Comfy Gimpy Studio - Task Progress Dashboard</h1>
+            <p>Real-time monitoring of async task execution</p>
+        </div>
+
+        <div class="stats">
+            <h2>System Statistics</h2>
+            <div class="stats-grid" id="stats-container">
+                <div class="stat-item">
+                    <div class="stat-value" id="queue-size">-</div>
+                    <div class="stat-label">Queue Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="pending-count">-</div>
+                    <div class="stat-label">Pending Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="running-count">-</div>
+                    <div class="stat-label">Running Tasks</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="completed-count">-</div>
+                    <div class="stat-label">Completed Today</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tasks-container">
+            <div class="task-card">
+                <div class="task-info">
+                    <h3>Connecting to progress service...</h3>
+                    <span class="task-status status-pending">Connecting</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        const tasksContainer = document.getElementById('tasks-container');
+        const taskElements = new Map();
+
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8080/ws/progress');
+
+            ws.onopen = function(event) {
+                console.log('Connected to progress service');
+                updateConnectionStatus(true);
+            };
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                handleMessage(data);
+            };
+
+            ws.onclose = function(event) {
+                console.log('Disconnected from progress service');
+                updateConnectionStatus(false);
+                setTimeout(connectWebSocket, 3000);
+            };
+
+            ws.onerror = function(error) {
+                console.error('WebSocket error:', error);
+                updateConnectionStatus(false);
+            };
+        }
+
+        function updateConnectionStatus(connected) {
+            if (!connected) {
+                tasksContainer.innerHTML = '<div class="task-card"><div class="task-info"><h3>Disconnected - Retrying...</h3><span class="task-status status-pending">Reconnecting</span></div></div>';
+            }
+        }
+
+        function handleMessage(data) {
+            switch(data.type) {
+                case 'task_started':
+                    createTaskElement(data.task_id, data);
+                    updateStats();
+                    break;
+                case 'progress_update':
+                    updateTaskProgress(data);
+                    break;
+                case 'task_completed':
+                    updateTaskCompletion(data);
+                    updateStats();
+                    break;
+            }
+        }
+
+        function createTaskElement(taskId, data) {
+            if (taskElements.has(taskId)) return;
+
+            const taskCard = document.createElement('div');
+            taskCard.className = 'task-card';
+            taskCard.id = `task-${taskId}`;
+
+            taskCard.innerHTML = `
+                <div class="task-info">
+                    <h3>Task ${taskId}</h3>
+                    <div>
+                        <span class="task-status status-running">Running</span>
+                        <button class="cancel-btn" onclick="cancelTask('${taskId}')">Cancel</button>
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-${taskId}"></div>
+                </div>
+                <div class="message" id="message-${taskId}">Initializing...</div>
+                <div class="eta" id="eta-${taskId}"></div>
+            `;
+
+            tasksContainer.appendChild(taskCard);
+            taskElements.set(taskId, taskCard);
+        }
+
+        function updateTaskProgress(data) {
+            const progressFill = document.getElementById(`progress-${data.task_id}`);
+            const messageEl = document.getElementById(`message-${data.task_id}`);
+            const etaEl = document.getElementById(`eta-${data.task_id}`);
+
+            if (progressFill) {
+                progressFill.style.width = `${data.percentage}%`;
+            }
+
+            if (messageEl) {
+                let message = data.stage || '';
+                if (data.message) {
+                    message += (message ? ' - ' : '') + data.message;
+                }
+                if (data.current_step && data.total_steps) {
+                    message += ` (${data.current_step}/${data.total_steps})`;
+                }
+                messageEl.textContent = message || 'Processing...';
+            }
+
+            if (etaEl && data.eta_seconds) {
+                const eta = formatETA(data.eta_seconds);
+                etaEl.textContent = `ETA: ${eta}`;
+            }
+        }
+
+        function updateTaskCompletion(data) {
+            const taskCard = document.getElementById(`task-${data.task_id}`);
+            const statusEl = taskCard.querySelector('.task-status');
+            const cancelBtn = taskCard.querySelector('.cancel-btn');
+
+            if (statusEl) {
+                statusEl.className = `task-status status-${data.state.toLowerCase()}`;
+                statusEl.textContent = data.state.charAt(0).toUpperCase() + data.state.slice(1);
+            }
+
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+
+            const messageEl = document.getElementById(`message-${data.task_id}`);
+            if (messageEl) {
+                if (data.error) {
+                    messageEl.textContent = `Error: ${data.error}`;
+                    messageEl.style.color = '#f44336';
+                } else {
+                    messageEl.textContent = 'Completed successfully';
+                    messageEl.style.color = '#4CAF50';
+                }
+            }
+        }
+
+        function cancelTask(taskId) {
+            fetch(`/api/tasks/${taskId}/cancel`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Cancel response:', data);
+                })
+                .catch(error => {
+                    console.error('Cancel error:', error);
+                });
+        }
+
+        function updateStats() {
+            // Fetch stats from API
+            fetch('/api/tasks')
+                .then(response => response.json())
+                .then(data => {
+                    // Update stats display
+                    document.getElementById('queue-size').textContent = data.count || 0;
+                    // Note: This is a simplified version. In a real implementation,
+                    // you'd want separate endpoints for detailed stats
+                })
+                .catch(error => {
+                    console.error('Stats fetch error:', error);
+                });
+        }
+
+        function formatETA(seconds) {
+            if (seconds < 60) {
+                return `${Math.round(seconds)}s`;
+            } else if (seconds < 3600) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = Math.round(seconds % 60);
+                return `${minutes}m ${remainingSeconds}s`;
+            } else {
+                const hours = Math.floor(seconds / 3600);
+                const minutes = Math.floor((seconds % 3600) / 60);
+                return `${hours}h ${minutes}m`;
+            }
+        }
+
+        // Connect on page load
+        connectWebSocket();
+
+        // Update stats periodically
+        setInterval(updateStats, 5000);
+    </script>
+</body>
+</html>

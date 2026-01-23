@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Extensions - Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/extensions.css">
+</head>
+<body>
+    <div class="extensions-container">
+        <header class="extensions-header">
+            <h1>Extensions</h1>
+            <div class="header-actions">
+                <button id="refresh-btn" class="btn-secondary">
+                    <span class="icon">🔄</span> Refresh
+                </button>
+                <button id="settings-btn" class="btn-secondary">
+                    <span class="icon">⚙️</span> Settings
+                </button>
+            </div>
+        </header>
+
+        <div class="extensions-content">
+            <!-- Installed Extensions Tab -->
+            <div class="tab-container">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" data-tab="installed">Installed</button>
+                    <button class="tab-btn" data-tab="marketplace">Marketplace</button>
+                </div>
+
+                <!-- Installed Extensions -->
+                <div id="installed-tab" class="tab-content active">
+                    <div class="extensions-grid" id="installed-extensions">
+                        <!-- Extensions will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Marketplace -->
+                <div id="marketplace-tab" class="tab-content">
+                    <div class="marketplace-filters">
+                        <input type="text" id="search-input" placeholder="Search extensions..." class="search-input">
+                        <select id="category-filter" class="filter-select">
+                            <option value="">All Categories</option>
+                            <option value="workflows">Workflows</option>
+                            <option value="ui">UI Components</option>
+                            <option value="assets">Assets</option>
+                            <option value="copywriting">Copywriting</option>
+                            <option value="brand">Brand Tools</option>
+                            <option value="layout">Layout</option>
+                        </select>
+                        <select id="sort-filter" class="filter-select">
+                            <option value="downloads">Most Downloads</option>
+                            <option value="rating">Highest Rated</option>
+                            <option value="recent">Recently Added</option>
+                            <option value="name">Name</option>
+                        </select>
+                    </div>
+                    <div class="extensions-grid" id="marketplace-extensions">
+                        <!-- Marketplace extensions will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extension Details Modal -->
+    <div id="extension-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Extension Details</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Extension details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button id="modal-action-btn" class="btn-primary">Install</button>
+                <button class="btn-secondary modal-close">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Extension Settings</h2>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-toggle">
+                        <input type="checkbox" id="auto-update-toggle">
+                        <span class="toggle-slider"></span>
+                        Auto-update extensions
+                    </label>
+                    <p class="setting-description">Automatically update extensions when new versions are available.</p>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-toggle">
+                        <input type="checkbox" id="hot-reload-toggle">
+                        <span class="toggle-slider"></span>
+                        Enable hot-reload
+                    </label>
+                    <p class="setting-description">Reload extensions automatically when their files change during development.</p>
+                </div>
+
+                <div class="setting-group">
+                    <label for="max-extensions-input">Maximum extensions:</label>
+                    <input type="number" id="max-extensions-input" min="1" max="100" value="50">
+                    <p class="setting-description">Maximum number of extensions that can be installed simultaneously.</p>
+                </div>
+
+                <div class="setting-group">
+                    <label>Trusted sources:</label>
+                    <div id="trusted-sources-list">
+                        <!-- Trusted sources will be loaded here -->
+                    </div>
+                    <button id="add-trusted-source" class="btn-secondary">Add Source</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="save-settings-btn" class="btn-primary">Save Settings</button>
+                <button class="btn-secondary modal-close">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/extensions.js"></script>
+</body>
+</html>

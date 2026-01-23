@@ -1,0 +1,35 @@
+{
+  "id": "test_brand",
+  "name": "Test Brand",
+  "description": "A test brand kit",
+  "version": "1.0",
+  "colors": {
+    "primary": "#007ACC",
+    "secondary": "#FF6B35",
+    "accent": "#F7931E",
+    "neutral": "#6B7280"
+  },
+  "fonts": {
+    "heading": {
+      "family": "Arial",
+      "weight": "bold",
+      "size": 24
+    },
+    "body": {
+      "family": "Arial",
+      "weight": "normal",
+      "size": 14
+    }
+  },
+  "logos": {},
+  "guidelines": {
+    "color_usage": "Use primary color for main elements",
+    "typography": "Maintain consistent font hierarchy",
+    "spacing": "Use 8px grid system"
+  },
+  "assets": {},
+  "metadata": {
+    "created_by": "Comfy Gimpy Studio",
+    "template": true
+  }
+}

@@ -1,0 +1,256 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Comfy Gimpy Studio Template Schema",
+  "description": "Schema for template metadata files in Comfy Gimpy Studio",
+  "type": "object",
+  "required": [
+    "name",
+    "description",
+    "category",
+    "version",
+    "dimensions",
+    "layers",
+    "placeholders",
+    "workflow_bindings"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Human-readable template name",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the template",
+      "maxLength": 500
+    },
+    "category": {
+      "type": "string",
+      "description": "Template category",
+      "enum": ["posters", "brochures", "business_cards", "websites", "social_media"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Template version (semantic versioning)",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "author": {
+      "type": "string",
+      "description": "Template author/creator",
+      "maxLength": 100
+    },
+    "tags": {
+      "type": "array",
+      "description": "Search and filtering tags",
+      "items": {
+        "type": "string",
+        "maxLength": 50
+      },
+      "maxItems": 20
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "Canvas dimensions in pixels",
+      "required": ["width", "height"],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 8192
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 64,
+          "maximum": 8192
+        },
+        "dpi": {
+          "type": "integer",
+          "minimum": 72,
+          "maximum": 600,
+          "default": 300
+        }
+      }
+    },
+    "background_color": {
+      "type": "string",
+      "description": "Default background color (hex or named)",
+      "pattern": "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$|^[a-zA-Z]+$"
+    },
+    "layers": {
+      "type": "array",
+      "description": "Layer definitions for GIMP reconstruction",
+      "items": {
+        "type": "object",
+        "required": ["name", "type", "visible"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Layer name",
+            "maxLength": 100
+          },
+          "type": {
+            "type": "string",
+            "description": "Layer type",
+            "enum": ["text", "image", "shape", "background", "group"]
+          },
+          "visible": {
+            "type": "boolean",
+            "description": "Layer visibility",
+            "default": true
+          },
+          "opacity": {
+            "type": "number",
+            "description": "Layer opacity (0-100)",
+            "minimum": 0,
+            "maximum": 100,
+            "default": 100
+          },
+          "blend_mode": {
+            "type": "string",
+            "description": "GIMP blend mode",
+            "enum": ["NORMAL", "MULTIPLY", "SCREEN", "OVERLAY", "SOFT_LIGHT", "HARD_LIGHT"],
+            "default": "NORMAL"
+          },
+          "position": {
+            "type": "object",
+            "description": "Layer position and size",
+            "properties": {
+              "x": { "type": "integer", "minimum": 0 },
+              "y": { "type": "integer", "minimum": 0 },
+              "width": { "type": "integer", "minimum": 1 },
+              "height": { "type": "integer", "minimum": 1 }
+            }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "placeholders": {
+      "type": "array",
+      "description": "Content replacement points",
+      "items": {
+        "type": "object",
+        "required": ["id", "type", "layer_name"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique placeholder identifier",
+            "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+          },
+          "type": {
+            "type": "string",
+            "description": "Placeholder content type",
+            "enum": ["text", "image", "logo", "background_image"]
+          },
+          "layer_name": {
+            "type": "string",
+            "description": "Associated layer name"
+          },
+          "label": {
+            "type": "string",
+            "description": "User-friendly label",
+            "maxLength": 100
+          },
+          "default_content": {
+            "type": "string",
+            "description": "Default content or placeholder text"
+          },
+          "constraints": {
+            "type": "object",
+            "description": "Content constraints",
+            "properties": {
+              "max_length": { "type": "integer", "minimum": 1 },
+              "allowed_formats": {
+                "type": "array",
+                "items": { "type": "string" }
+              },
+              "min_dimensions": {
+                "type": "object",
+                "properties": {
+                  "width": { "type": "integer", "minimum": 1 },
+                  "height": { "type": "integer", "minimum": 1 }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "workflow_bindings": {
+      "type": "object",
+      "description": "Bindings to ComfyUI workflows",
+      "required": ["default_workflow"],
+      "properties": {
+        "default_workflow": {
+          "type": "string",
+          "description": "Default workflow name"
+        },
+        "alternative_workflows": {
+          "type": "array",
+          "description": "Alternative workflow options",
+          "items": { "type": "string" }
+        },
+        "parameter_mappings": {
+          "type": "object",
+          "description": "How template parameters map to workflow inputs",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "style_requirements": {
+      "type": "object",
+      "description": "Compatible LoRA styles and requirements",
+      "properties": {
+        "recommended_styles": {
+          "type": "array",
+          "description": "Recommended style categories",
+          "items": { "type": "string" }
+        },
+        "compatible_models": {
+          "type": "array",
+          "description": "Compatible base models",
+          "items": { "type": "string" }
+        },
+        "style_injection_points": {
+          "type": "array",
+          "description": "Where styles can be applied",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "description": "Required dependencies",
+      "properties": {
+        "workflows": {
+          "type": "array",
+          "description": "Required workflow names",
+          "items": { "type": "string" }
+        },
+        "models": {
+          "type": "array",
+          "description": "Required model files",
+          "items": { "type": "string" }
+        },
+        "fonts": {
+          "type": "array",
+          "description": "Required font files",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata",
+      "properties": {
+        "created_date": { "type": "string", "format": "date" },
+        "last_modified": { "type": "string", "format": "date-time" },
+        "license": { "type": "string" },
+        "usage_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

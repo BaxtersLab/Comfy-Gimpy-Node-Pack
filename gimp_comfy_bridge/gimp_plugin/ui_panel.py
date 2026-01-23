@@ -280,3 +280,204 @@ def show_workflow_options(workflows: List[Dict[str, Any]]):
     # This would show a dialog with workflow options
     # For now, just log
     logger.info(f"Available workflows: {[w['name'] for w in workflows]}")
+
+
+# Template UI stubs
+def show_template_categories(categories):
+    """
+    Show template categories.
+
+    Args:
+        categories (list): List of category dictionaries
+    """
+    if not GIMP_AVAILABLE:
+        logger.info("GIMP not available, showing categories in console:")
+        for cat in categories:
+            print(f"  {cat['display_name']} ({cat['template_count']} templates)")
+        return
+
+    # Stub: Would show category selection dialog
+    logger.info(f"Available template categories: {[cat['display_name'] for cat in categories]}")
+
+
+def show_templates(category, templates):
+    """
+    Show templates in a category.
+
+    Args:
+        category (str): Category name
+        templates (list): List of template dictionaries
+    """
+    if not GIMP_AVAILABLE:
+        logger.info(f"Templates in category '{category}':")
+        for template in templates:
+            print(f"  {template['name']}: {template['description']}")
+        return
+
+    # Stub: Would show template selection dialog
+    logger.info(f"Available templates in {category}: {[t['name'] for t in templates]}")
+
+
+def show_template_preview(image):
+    """
+    Show template preview image.
+
+    Args:
+        image: PIL Image or bytes
+    """
+    if not GIMP_AVAILABLE:
+        logger.info("Template preview available (GIMP not available for display)")
+        return
+
+    # Stub: Would display preview image
+    logger.info("Showing template preview")
+
+
+def on_template_selected(category, name):
+    """
+    Handle template selection.
+
+    Args:
+        category (str): Template category
+        name (str): Template name
+    """
+    from gimp_plugin.plugin import load_template_into_gimp
+
+    logger.info(f"Template selected: {category}/{name}")
+    success = load_template_into_gimp(category, name)
+
+    if success:
+        update_status(f"Loaded template: {name}")
+    else:
+        show_error(f"Failed to load template: {name}")
+
+
+# Style UI stubs
+def show_style_categories(categories):
+    """
+    Show style categories.
+
+    Args:
+        categories (list): List of category dictionaries
+    """
+    if not GIMP_AVAILABLE:
+        logger.info("GIMP not available, showing categories in console:")
+        for cat in categories:
+            print(f"  {cat['display_name']} ({cat['style_count']} styles)")
+        return
+
+    # Stub: Would show category selection dialog
+    logger.info(f"Available style categories: {[cat['display_name'] for cat in categories]}")
+
+
+def show_styles(category, styles):
+    """
+    Show styles in a category.
+
+    Args:
+        category (str): Category name
+        styles (list): List of style dictionaries
+    """
+    if not GIMP_AVAILABLE:
+        logger.info(f"Styles in category '{category}':")
+        for style in styles:
+            print(f"  {style['name']}: {style['description']} (weight: {style['default_weight']})")
+        return
+
+    # Stub: Would show style selection dialog
+    logger.info(f"Available styles in {category}: {[s['name'] for s in styles]}")
+
+
+def show_style_preview(image):
+    """
+    Show style preview image.
+
+    Args:
+        image: PIL Image or bytes
+    """
+    if not GIMP_AVAILABLE:
+        logger.info("Style preview available (GIMP not available for display)")
+        return
+
+    # Stub: Would display preview image
+    logger.info("Showing style preview")
+
+
+def on_style_selected(category, name, weight=None):
+    """
+    Handle style selection.
+
+    Args:
+        category (str): Style category
+        name (str): Style name
+        weight (float, optional): Style weight
+    """
+    from gimp_plugin.plugin import apply_style_to_workflow
+
+    logger.info(f"Style selected: {category}/{name} (weight: {weight})")
+    style_info = apply_style_to_workflow(category, name, weight)
+
+    if style_info:
+        update_status(f"Applied style: {name}")
+        # Return style info for workflow integration
+        return style_info
+    else:
+        show_error(f"Failed to apply style: {name}")
+        return None
+
+
+# Compatibility functions for new UI system (Phase 11)
+def update_status(message: str):
+    """
+    Update status display (compatibility function).
+
+    Args:
+        message: Status message to display
+    """
+    try:
+        # Try to use new UI system first
+        from gimp_plugin.comfyui_bridge import ui_state_manager
+        if ui_state_manager:
+            # Update status in new UI system
+            logger.info(f"Status: {message}")
+            return
+    except ImportError:
+        pass
+
+    # Fallback to legacy UI or logging
+    logger.info(f"Status: {message}")
+
+    # Try to show status in GIMP if available
+    if GIMP_AVAILABLE:
+        try:
+            gimp.message(message)
+        except:
+            pass
+
+
+def show_error(message: str):
+    """
+    Show error message (compatibility function).
+
+    Args:
+        message: Error message to display
+    """
+    try:
+        # Try to use new UI system first
+        from gimp_plugin.comfyui_bridge import ui_state_manager
+        if ui_state_manager:
+            # Show error in new UI system
+            logger.error(f"Error: {message}")
+            return
+    except ImportError:
+        pass
+
+    # Fallback to legacy UI or logging
+    logger.error(f"Error: {message}")
+
+    # Try to show error in GIMP if available
+    if GIMP_AVAILABLE:
+        try:
+            gimp.message(f"Error: {message}")
+        except:
+            pass

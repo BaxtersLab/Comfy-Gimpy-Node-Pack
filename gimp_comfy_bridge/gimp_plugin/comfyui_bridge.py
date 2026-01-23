@@ -30,6 +30,18 @@ from gimp_plugin.plugin import (
     send_current_layer_for_img2img, send_current_layer_for_controlnet
 )
 from gimp_plugin.ui_panel import ComfyUIPanel
+
+# Import new UI system (Phase 11)
+try:
+    from gimp_plugin.ui import (
+        UIStateManager, IconRegistry, LayoutManager,
+        ToolboxBar, ToolboxPanel, FloatingPanel, ToolboxSwitcher
+    )
+    NEW_UI_AVAILABLE = True
+except ImportError:
+    NEW_UI_AVAILABLE = False
+    logger.warning("New UI system not available, falling back to legacy UI")
+
 from gimp_plugin.api_client import ping_backend, get_workflows
 
 # Set up logging
@@ -45,10 +57,95 @@ logger = logging.getLogger(__name__)
 
 # Global variables
 panel = None
+ui_state_manager = None
+icon_registry = None
+layout_manager = None
+toolbox_bar = None
+toolbox_panel = None
+floating_panel = None
+toolbox_switcher = None
+
+def _handle_toolbox_action(toolbox_type, action):
+    """
+    Handle toolbox action from switcher.
+
+    Args:
+        toolbox_type: Type of toolbox
+        action: Action to perform ("open", "minimize", "float", "close")
+    """
+    global toolbox_bar, toolbox_panel, floating_panel
+
+    try:
+        if action == "open":
+            if toolbox_bar:
+                toolbox_bar.show_toolbox(toolbox_type.value)
+            if toolbox_panel:
+                toolbox_panel.show_toolbox(toolbox_type.value)
+        elif action == "minimize":
+            if toolbox_panel:
+                toolbox_panel.minimize_toolbox(toolbox_type.value)
+        elif action == "float":
+            if floating_panel:
+                floating_panel.float_toolbox(toolbox_type.value)
+        elif action == "close":
+            if toolbox_bar:
+                toolbox_bar.hide_toolbox(toolbox_type.value)
+            if toolbox_panel:
+                toolbox_panel.hide_toolbox(toolbox_type.value)
+            if floating_panel:
+                floating_panel.close_toolbox(toolbox_type.value)
+
+        logger.debug(f"Handled toolbox action: {toolbox_type.value} -> {action}")
+
+    except Exception as e:
+        logger.error(f"Failed to handle toolbox action: {e}")
+
+def _register_keyboard_shortcuts():
+    """Register keyboard shortcuts for the new UI system."""
+    global toolbox_switcher
+
+    if not NEW_UI_AVAILABLE or not toolbox_switcher:
+        return
+
+    try:
+        # The toolbox switcher handles its own shortcut registration
+        # Additional shortcuts can be registered here if needed
+        logger.debug("Keyboard shortcuts registered for new UI system")
+
+    except Exception as e:
+        logger.error(f"Failed to register keyboard shortcuts: {e}")
+
+def show_toolbox_switcher():
+    """Show the toolbox switcher (Ctrl+X)."""
+    global toolbox_switcher
+
+    if toolbox_switcher:
+        toolbox_switcher.show()
+    else:
+        logger.warning("Toolbox switcher not available")
+
+def toggle_toolbox_bar():
+    """Toggle the toolbox bar visibility."""
+    global toolbox_bar
+
+    if toolbox_bar:
+        toolbox_bar.toggle_visibility()
+    else:
+        logger.warning("Toolbox bar not available")
+
+def toggle_toolbox_panel():
+    """Toggle the toolbox panel visibility."""
+    global toolbox_panel
+
+    if toolbox_panel:
+        toolbox_panel.toggle_visibility()
+    else:
+        logger.warning("Toolbox panel not available")
 
 def plugin_main():
     """Main plugin entry point."""
-    global panel
+    global panel, ui_state_manager, icon_registry, layout_manager
+    global toolbox_bar, toolbox_panel, floating_panel, toolbox_switcher
 
     logger.info("Initializing ComfyUI Bridge GIMP Plugin")
 
@@ -61,8 +158,36 @@ def plugin_main():
     except Exception as e:
         logger.error(f"Backend connection test failed: {e}")
 
-    # Initialize UI panel
+    # Initialize legacy UI panel (fallback)
     panel = ComfyUIPanel()
+
+    # Initialize new UI system (Phase 11)
+    if NEW_UI_AVAILABLE:
+        try:
+            logger.info("Initializing new UI system (Phase 11)")
+
+            # Initialize core UI systems
+            ui_state_manager = UIStateManager()
+            icon_registry = IconRegistry()
+            layout_manager = LayoutManager()
+
+            # Initialize UI components
+            toolbox_bar = ToolboxBar(ui_state_manager, icon_registry, layout_manager)
+            toolbox_panel = ToolboxPanel(ui_state_manager, icon_registry, layout_manager)
+            floating_panel = FloatingPanel(ui_state_manager, icon_registry, layout_manager)
+            toolbox_switcher = ToolboxSwitcher(ui_state_manager, icon_registry, layout_manager)
+
+            # Connect toolbox switcher to UI components
+            toolbox_switcher.on_toolbox_action = _handle_toolbox_action
+
+            # Register keyboard shortcut for switcher
+            _register_keyboard_shortcuts()
+
+            logger.info("New UI system initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize new UI system: {e}")
+            NEW_UI_AVAILABLE = False
 
     # Load workflows
     try:
@@ -219,6 +344,54 @@ if gimp:
             redo_ai_step,
             menu="<Image>/Edit"
         )
+
+        # Register new UI system functions (Phase 11)
+        if NEW_UI_AVAILABLE:
+            register(
+                "comfyui_bridge_show_switcher",
+                "Show Toolbox Switcher",
+                "Show the keyboard-driven toolbox switcher (Ctrl+X)",
+                "ComfyUI Bridge Team",
+                "ComfyUI Bridge Team",
+                "2024",
+                "Show Toolbox Switcher",
+                "*",
+                [],
+                [],
+                show_toolbox_switcher,
+                menu="<Image>/ComfyUI Bridge/UI"
+            )
+
+            register(
+                "comfyui_bridge_toggle_toolbox_bar",
+                "Toggle Toolbox Bar",
+                "Toggle the side-scrollable toolbox bar",
+                "ComfyUI Bridge Team",
+                "ComfyUI Bridge Team",
+                "2024",
+                "Toggle Toolbox Bar",
+                "*",
+                [],
+                [],
+                toggle_toolbox_bar,
+                menu="<Image>/ComfyUI Bridge/UI"
+            )
+
+            register(
+                "comfyui_bridge_toggle_toolbox_panel",
+                "Toggle Toolbox Panel",
+                "Toggle the expandable toolbox panel",
+                "ComfyUI Bridge Team",
+                "ComfyUI Bridge Team",
+                "2024",
+                "Toggle Toolbox Panel",
+                "*",
+                [],
+                [],
+                toggle_toolbox_panel,
+                menu="<Image>/ComfyUI Bridge/UI"
+            )
+
     except Exception as e:
         logger.error(f"Failed to register GIMP plugin functions: {e}")
 else:

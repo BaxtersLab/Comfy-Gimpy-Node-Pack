@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Models - Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>Model Browser</h1>
+        <nav>
+            <a href="/">Home</a>
+            <a href="/models" class="active">Models</a>
+            <a href="/templates">Templates</a>
+            <a href="/styles">Styles</a>
+            <a href="/workflows">Workflows</a>
+            <a href="/settings">Settings</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="search">
+            <div class="search-controls">
+                <input type="text" id="search-query" placeholder="Search models...">
+                <select id="model-type">
+                    <option value="checkpoint">Checkpoint</option>
+                    <option value="lora">LoRA</option>
+                    <option value="controlnet">ControlNet</option>
+                </select>
+                <select id="source">
+                    <option value="civitai">Civitai</option>
+                    <option value="huggingface">HuggingFace</option>
+                    <option value="both">Both</option>
+                </select>
+                <button id="search-btn">Search</button>
+            </div>
+        </section>
+
+        <section id="local-models">
+            <h2>Local Models</h2>
+            <div id="local-models-list">
+                <p>Loading local models...</p>
+            </div>
+        </section>
+
+        <section id="search-results">
+            <h2>Search Results</h2>
+            <div id="results-list">
+                <p>Enter a search query to find models...</p>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2026 Comfy Gimpy Studio</p>
+    </footer>
+
+    <script src="/static/js/models.js"></script>
+</body>
+</html>

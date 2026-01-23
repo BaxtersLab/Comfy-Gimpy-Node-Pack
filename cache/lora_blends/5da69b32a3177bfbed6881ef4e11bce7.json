@@ -1,0 +1,17 @@
+{
+  "type": "blended_lora",
+  "loras": [
+    "lora1",
+    "lora2"
+  ],
+  "weights": [
+    0.6,
+    0.4
+  ],
+  "normalized_weights": {
+    "lora1": 0.6,
+    "lora2": 0.4
+  },
+  "total_weight": 1.0,
+  "blend_hash": "5da69b32"
+}

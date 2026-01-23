@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout Optimization - Comfy Gimpy Studio</title>
+    <link rel="stylesheet" href="/static/css/layout_opt.css">
+</head>
+<body>
+    <div class="layout-opt-container">
+        <header class="layout-opt-header">
+            <h1>AI Layout Optimization</h1>
+            <p>Analyze and improve your template layouts using AI-driven design rules</p>
+        </header>
+
+        <div class="layout-opt-content">
+            <!-- Upload Section -->
+            <section class="upload-section">
+                <h2>Upload Layout</h2>
+                <div class="upload-area" id="uploadArea">
+                    <div class="upload-placeholder">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                            <polyline points="14,2 14,8 20,8"/>
+                        </svg>
+                        <p>Drop layout file here or click to browse</p>
+                        <button class="upload-btn" id="uploadBtn">Choose File</button>
+                    </div>
+                    <input type="file" id="layoutFile" accept=".json,.yaml,.yml" style="display: none;">
+                </div>
+            </section>
+
+            <!-- Analysis Section -->
+            <section class="analysis-section" id="analysisSection" style="display: none;">
+                <h2>Layout Analysis</h2>
+                <div class="analysis-controls">
+                    <button class="analyze-btn" id="analyzeBtn">Analyze Layout</button>
+                    <div class="analysis-options">
+                        <label>
+                            <input type="checkbox" id="generateOverlays" checked>
+                            Generate Visual Overlays
+                        </label>
+                    </div>
+                </div>
+
+                <div class="analysis-results" id="analysisResults" style="display: none;">
+                    <div class="score-overview">
+                        <h3>Overall Score</h3>
+                        <div class="score-display">
+                            <div class="score-circle" id="overallScore">0</div>
+                            <div class="score-breakdown" id="scoreBreakdown"></div>
+                        </div>
+                    </div>
+
+                    <div class="violations-list">
+                        <h3>Issues Found</h3>
+                        <div id="violationsContainer"></div>
+                    </div>
+
+                    <div class="recommendations-list">
+                        <h3>Recommendations</h3>
+                        <ul id="recommendationsList"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Optimization Section -->
+            <section class="optimization-section" id="optimizationSection" style="display: none;">
+                <h2>Layout Optimization</h2>
+                <div class="optimization-controls">
+                    <div class="control-group">
+                        <label for="optimizationLevel">Optimization Level:</label>
+                        <select id="optimizationLevel">
+                            <option value="basic">Basic</option>
+                            <option value="standard" selected>Standard</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+
+                    <div class="overlay-options">
+                        <h4>Visual Overlays:</h4>
+                        <div class="overlay-checkboxes" id="overlayCheckboxes"></div>
+                    </div>
+
+                    <button class="optimize-btn" id="optimizeBtn">Optimize Layout</button>
+                </div>
+
+                <div class="optimization-results" id="optimizationResults" style="display: none;">
+                    <div class="improvement-summary">
+                        <h3>Optimization Results</h3>
+                        <div class="improvement-score" id="improvementScore"></div>
+                        <div class="actions-applied" id="actionsApplied"></div>
+                    </div>
+
+                    <div class="layout-preview">
+                        <h3>Optimized Layout Preview</h3>
+                        <div class="preview-container">
+                            <svg id="layoutSvg" width="800" height="600"></svg>
+                            <div class="overlay-controls">
+                                <button id="toggleOverlays">Toggle Overlays</button>
+                                <div class="overlay-legend" id="overlayLegend"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Variants Section -->
+            <section class="variants-section" id="variantsSection" style="display: none;">
+                <h2>Layout Variants</h2>
+                <div class="variants-controls">
+                    <div class="strategy-selection">
+                        <h4>Generation Strategies:</h4>
+                        <div class="strategy-checkboxes" id="strategyCheckboxes"></div>
+                    </div>
+
+                    <div class="control-group">
+                        <label for="variantsCount">Variants per Strategy:</label>
+                        <input type="number" id="variantsCount" value="3" min="1" max="10">
+                    </div>
+
+                    <button class="generate-variants-btn" id="generateVariantsBtn">Generate Variants</button>
+                </div>
+
+                <div class="variants-results" id="variantsResults" style="display: none;">
+                    <div class="variants-grid" id="variantsGrid"></div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+            <div class="loading-spinner"></div>
+            <p id="loadingText">Processing...</p>
+        </div>
+
+        <!-- Error Messages -->
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script src="/static/js/layout_opt.js"></script>
+</body>
+</html>
