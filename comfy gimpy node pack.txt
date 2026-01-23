@@ -1,0 +1,688 @@
+prompt 1
+
+
+You are an engineering agent responsible for generating the initial scaffold for a deep integration framework between GIMP (GNU Image Manipulation Program) and ComfyUI (Stable Diffusion workflow engine). Your task in this prompt is ONLY to create the full project structure and empty code scaffolding. DO NOT implement any real logic yet. DO NOT attempt to fill in functionality. Only create directories, files, class stubs, and function signatures with docstrings.
+
+============================================================
+PROJECT GOAL
+============================================================
+Create a modular, extensible codebase that will later support:
+- Sending images, masks, and parameters from GIMP to ComfyUI
+- Triggering AI workflows (inpaint, outpaint, upscale, txt2img, img2img)
+- Receiving generated images back into GIMP
+- Maintaining a file-based history system for undo/redo
+- Clean separation between GIMP plugin, ComfyUI extension, and shared utilities
+
+This prompt covers ONLY the scaffold. Implementation will come later
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+prompt 2
+
+
+You are an engineering agent responsible for implementing the Communication Layer for the GIMP ↔ ComfyUI integration framework. The scaffold already exists from a previous prompt. In this prompt, your ONLY task is to implement the communication mechanics between the GIMP plugin and the ComfyUI backend.
+
+DO NOT modify directory structure.
+DO NOT implement history, undo/redo, or workflow logic.
+DO NOT implement GIMP UI logic.
+Focus ONLY on the HTTP communication layer and API contract.
+
+============================================================
+PROJECT CONTEXT (REQUIRED FOR THIS PROMPT)
+============================================================
+The project integrates GIMP (as operator UI) with ComfyUI (as AI backend).  
+The communication layer must allow GIMP to:
+
+1. Ping the backend  
+2. Send images, masks, and parameters  
+3. Trigger workflows  
+4. Receive generated images  
+
+The communication layer must be:
+- Simple
+- Synchronous for now (path of least resistance)
+- JSON + multipart/form-data
+- Local HTTP by default (localhost:8188)
+
+============================================================
+FILES TO IMPLEMENT IN THIS PROMPT
+============================================================
+
+You must implement real logic in:
+
+gimp_comfy_bridge/
+    gimp_plugin/api_client.py
+    shared/config.py
+    shared/protocol.py
+    comfy_extension/server_endpoints.py
+    comfy_extension/io_handlers.py
+    comfy_extension/workflow_loader.py
+
+All other files remain untouched.
+
+============================================================
+COMMUNICATION CONTRACT (IMPLEMENT EXACTLY)
+============================================================
+
+BASE URL:
+    http://<host>:<port>/gimp_bridge/
+
+DEFAULTS:
+    host = "localhost"
+    port = 8188
+
+ENDPOINTS TO IMPLEMENT:
+
+------------------------------------------------------------
+1. POST /ping
+------------------------------------------------------------
+Request: {}
+Response:
+{
+    "status": "ok",
+    "comfyui_version": "<string>",
+    "models_available": ["model1", "model2"]
+}
+
+------------------------------------------------------------
+2. POST /run_workflow
+------------------------------------------------------------
+Content-Type: multipart/form-data
+
+Fields:
+- mode: string
+- workflow_name: string
+- params: JSON string
+- image: optional PNG file
+- mask: optional PNG file
+
+Response (synchronous):
+{
+    "status": "completed",
+    "task_id": "<string>",
+    "result": {
+        "image_base64": "<...>",
+        "mime_type": "image/png"
+    }
+}
+
+------------------------------------------------------------
+3. GET /workflows
+------------------------------------------------------------
+Response:
+{
+    "workflows": [
+        {
+            "name": "inpaint_basic",
+            "mode": "inpaint",
+            "description": "Basic inpainting workflow"
+        },
+        ...
+    ]
+}
+
+============================================================
+IMPLEMENTATION REQUIREMENTS
+============================================================
+
+===========================
+shared/config.py
+===========================
+Implement:
+- Config class with fields:
+    host, port, base_url, workflows_dir
+- load_config() function returning a Config instance
+
+===========================
+shared/protocol.py
+===========================
+Implement:
+- Request/response dataclasses:
+    PingResponse
+    WorkflowRequest
+    WorkflowResponse
+- Helper functions for:
+    - encoding params
+    - decoding base64 images
+
+===========================
+gimp_plugin/api_client.py
+===========================
+Implement:
+- ping_backend()
+- run_workflow()
+- get_workflows()
+
+Use Python's `requests` library.
+Handle:
+- connection errors
+- invalid responses
+- JSON decoding errors
+
+===========================
+comfy_extension/server_endpoints.py
+===========================
+Implement Flask or FastAPI server endpoints:
+- /ping
+- /run_workflow
+- /workflows
+
+For /run_workflow:
+- Accept multipart/form-data
+- Save uploaded files using io_handlers
+- Load workflow template using workflow_loader
+- Return a placeholder generated image (e.g., a blank PNG or echo input)
+  (Real AI logic will be added later.)
+
+===========================
+comfy_extension/io_handlers.py
+===========================
+Implement:
+- save_uploaded_image()
+- save_uploaded_mask()
+- load_result_image()
+
+Use temporary directories inside comfy_extension/.
+
+===========================
+comfy_extension/workflow_loader.py
+===========================
+Implement:
+- load_workflow_template(name: str)
+- list_available_workflows()
+
+Workflows live in:
+    gimp_comfy_bridge/examples/workflows/
+
+============================================================
+OUTPUT FORMAT
+============================================================
+Your output must be:
+- The updated code for all files listed above
+- Fully implemented communication logic
+- No placeholders except where explicitly allowed
+- No workflow logic, no history logic, no GIMP UI logic
+
+Begin now.
+
+
+
+
+
+
+prompt 3
+
+
+
+You are an engineering agent responsible for implementing the History System for the GIMP ↔ ComfyUI integration framework. The scaffold and communication layer already exist from previous prompts. In this prompt, your ONLY task is to implement the file‑based history system, snapshot mechanics, session lifecycle, and undo/redo logic.
+
+DO NOT modify directory structure.
+DO NOT implement workflow logic.
+DO NOT implement GIMP UI logic.
+DO NOT implement ComfyUI logic.
+Focus ONLY on the history system and its integration points.
+
+============================================================
+PROJECT CONTEXT (REQUIRED FOR THIS PROMPT)
+============================================================
+The project integrates GIMP (as operator UI) with ComfyUI (as AI backend).  
+Every AI operation must create a snapshot containing:
+- input image
+- mask (if any)
+- params.json
+- output image
+- meta.json
+
+Snapshots must be stored in:
+gimp_comfy_bridge/temp/sessions/<session_id>/step_0001/
+gimp_comfy_bridge/temp/sessions/<session_id>/step_0002/
+...
+
+The history system must support:
+- Creating sessions
+- Creating steps
+- Saving snapshots
+- Undo (step back)
+- Redo (step forward)
+- Truncating forward history after undo
+- Loading metadata
+
+============================================================
+FILES TO IMPLEMENT IN THIS PROMPT
+============================================================
+
+You must implement real logic in:
+
+gimp_comfy_bridge/shared/history.py
+gimp_comfy_bridge/gimp_plugin/plugin.py  (ONLY the undo/redo integration points)
+gimp_comfy_bridge/shared/types.py        (add typed structures for history metadata)
+
+All other files remain untouched.
+
+============================================================
+HISTORY SYSTEM REQUIREMENTS
+============================================================
+
+===========================
+1. Session Lifecycle
+===========================
+Implement in HistoryManager:
+
+- start_session(session_id=None)
+    - If session_id is None, generate one (UUID or timestamp)
+    - Create session folder
+    - Reset current_step = 0
+    - Track max_step = 0
+
+- next_step_dir()
+    - Increment current_step
+    - Update max_step = current_step
+    - Return path to new step folder (step_0001, step_0002, ...)
+
+===========================
+2. Snapshot Saving
+===========================
+Implement save_step():
+- Create step folder
+- Copy or move:
+    - input.png (optional)
+    - mask.png (optional)
+    - output.png (required)
+    - params.json (required)
+- Write meta.json with fields:
+    {
+        "step": <int>,
+        "timestamp": "<ISO8601>",
+        "workflow": "<string>",
+        "mode": "<string>",
+        "input_file": "input.png" or null,
+        "mask_file": "mask.png" or null,
+        "output_file": "output.png",
+        "params_file": "params.json",
+        "notes": "<string>"
+    }
+
+===========================
+3. Undo / Redo Mechanics
+===========================
+Implement:
+
+- can_undo()
+    - return current_step > 1
+
+- can_redo()
+    - return current_step < max_step
+
+- undo()
+    - if can_undo():
+        - current_step -= 1
+        - return path to step_<current_step>/output.png
+    - else return None
+
+- redo()
+    - if can_redo():
+        - current_step += 1
+        - return path to step_<current_step>/output.png
+    - else return None
+
+===========================
+4. Forward History Truncation
+===========================
+If a new AI operation occurs after undo:
+- Delete all step folders > current_step
+- Update max_step = current_step
+
+Implement helper:
+- truncate_forward_history()
+
+===========================
+5. Metadata Loading
+===========================
+Implement load_meta(step: int):
+- Read meta.json
+- Return as a typed structure (use shared/types.py)
+
+===========================
+6. Integration Points in plugin.py
+===========================
+In plugin.py, implement ONLY:
+
+- undo_ai_step()
+    - Call history.undo()
+    - If path returned, load image into GIMP layer (stub only)
+    - If None, do nothing
+
+- redo_ai_step()
+    - Same as undo but forward
+
+- Ensure plugin.py calls:
+    - history.start_session() when needed
+    - history.next_step_dir() before saving snapshots
+    - history.save_step() after receiving AI output
+    - history.truncate_forward_history() when new operations occur after undo
+
+DO NOT implement actual GIMP image loading logic.
+Use docstrings or placeholder comments.
+
+============================================================
+OUTPUT FORMAT
+============================================================
+Your output must be:
+- Fully implemented history.py
+- Updated plugin.py with undo/redo integration
+- Updated types.py with metadata structures
+- No workflow logic
+- No UI logic
+- No ComfyUI logic
+
+Begin now.
+
+
+
+
+prompt 4 
+
+You are an engineering agent responsible for implementing the Workflow Mechanics and Operator UX Integration for the GIMP ↔ ComfyUI bridge. The scaffold, communication layer, and history system already exist from previous prompts. In this prompt, your ONLY task is to implement the workflow execution logic inside the GIMP plugin and connect it to:
+
+1. The communication layer (api_client)
+2. The history system (HistoryManager)
+3. The mask/image extraction utilities
+4. The workflow parameter builder
+
+DO NOT modify directory structure.
+DO NOT implement ComfyUI AI logic.
+DO NOT implement GIMP UI widgets beyond stubs.
+DO NOT modify server endpoints.
+Focus ONLY on the GIMP-side workflow mechanics.
+
+============================================================
+PROJECT CONTEXT (REQUIRED FOR THIS PROMPT)
+============================================================
+The GIMP plugin must support the following operator workflows:
+
+- Inpaint (requires image + mask)
+- Outpaint (image + auto-generated mask)
+- Upscale (image only)
+- Txt2Img (prompt only)
+- Img2Img (image + strength)
+- ControlNet (image + control type)
+
+Each workflow must:
+1. Export the current layer to a temporary PNG
+2. Export the selection mask (if applicable)
+3. Build a params.json dictionary using the shared/types.py structures
+4. Call api_client.run_workflow()
+5. Receive the generated image (base64)
+6. Save the output image to the history step folder
+7. Insert the output into GIMP as a new layer (stub only)
+8. Update the HistoryManager
+
+============================================================
+FILES TO IMPLEMENT IN THIS PROMPT
+============================================================
+
+You must implement real logic in:
+
+gimp_comfy_bridge/gimp_plugin/plugin.py
+gimp_comfy_bridge/gimp_plugin/utils.py
+gimp_comfy_bridge/shared/types.py  (workflow params structures)
+
+All other files remain untouched.
+
+============================================================
+WORKFLOW MECHANICS TO IMPLEMENT
+============================================================
+
+===========================
+1. Image + Mask Extraction
+===========================
+In utils.py, implement:
+
+- export_current_layer(temp_path: Path) -> Path
+- export_selection_mask(temp_path: Path) -> Optional[Path]
+- insert_image_as_new_layer(image_path: Path)
+- generate_outpaint_mask(temp_path: Path) -> Path
+
+Mask rules:
+- Inpaint: use selection mask
+- Outpaint: generate mask automatically (white border expansion)
+- Upscale: no mask
+- Txt2Img: no mask
+- Img2Img: no mask unless selection is used
+- ControlNet: no mask unless selection is used
+
+===========================
+2. Parameter Builder
+===========================
+In plugin.py, implement helper:
+
+build_params(
+    mode: str,
+    workflow_name: str,
+    prompt: Optional[str],
+    negative_prompt: Optional[str],
+    width: Optional[int],
+    height: Optional[int],
+    strength: Optional[float],
+    upscale_factor: Optional[float],
+    model: Optional[str],
+    loras: Optional[list],
+    controlnet: Optional[list],
+) -> dict
+
+This must produce a params.json matching the schema defined earlier.
+
+===========================
+3. Workflow Execution Functions
+===========================
+Implement the following in plugin.py:
+
+- send_current_layer_for_inpaint(prompt, negative_prompt=None)
+- send_current_layer_for_upscale(upscale_factor=2.0)
+- generate_from_text(prompt, negative_prompt=None, width=1024, height=1024)
+- send_current_layer_for_img2img(prompt, strength=0.6)
+- send_current_layer_for_controlnet(prompt, control_type="canny")
+
+Each function must:
+
+1. Ensure a session exists (history.start_session() if needed)
+2. If undo was used previously, call history.truncate_forward_history()
+3. Create a new step folder via history.next_step_dir()
+4. Export input image → step/input.png
+5. Export mask if needed → step/mask.png
+6. Build params.json → step/params.json
+7. Call api_client.run_workflow()
+8. Decode base64 result → step/output.png
+9. Save snapshot via history.save_step()
+10. Insert output into GIMP as new layer (stub)
+11. Update internal state
+
+===========================
+4. Undo/Redo Integration
+===========================
+Ensure undo_ai_step() and redo_ai_step() now:
+
+- Load the output.png from the returned path
+- Insert it into GIMP as the active layer (stub)
+- Do NOT modify workflow logic
+
+===========================
+5. Operator UX Stubs
+===========================
+In ui_panel.py, add:
+
+- update_status(message: str)
+- show_error(message: str)
+- show_workflow_options(workflows: list)
+
+These remain stubs but must be callable from plugin.py.
+
+============================================================
+OUTPUT FORMAT
+============================================================
+Your output must be:
+
+- Updated plugin.py with full workflow mechanics
+- Updated utils.py with image/mask extraction + layer insertion stubs
+- Updated types.py with workflow parameter structures
+- No ComfyUI logic
+- No server logic
+- No UI implementation beyond stubs
+
+Begin now.
+
+
+
+
+prompt 5
+
+
+
+
+You are an engineering agent responsible for performing a full refinement and hardening pass on the GIMP ↔ ComfyUI integration framework. The scaffold (Prompt 1), communication layer (Prompt 2), history system (Prompt 3), and workflow mechanics (Prompt 4) already exist. In this prompt, your ONLY task is to refine, stabilize, and harden the existing codebase.
+
+DO NOT add new features.
+DO NOT change the architecture.
+DO NOT modify directory structure.
+DO NOT implement AI logic.
+DO NOT implement GIMP UI widgets beyond stubs.
+
+Focus ONLY on quality, safety, consistency, and robustness.
+
+============================================================
+OBJECTIVES OF THIS PROMPT
+============================================================
+
+You must perform the following:
+
+1. **Code Consistency Pass**
+   - Ensure naming conventions are consistent across modules.
+   - Ensure all docstrings follow a uniform style.
+   - Ensure all imports are correct and minimal.
+   - Ensure all type hints are correct and consistent.
+
+2. **Error Handling Hardening**
+   - Add robust try/except blocks around:
+       - HTTP requests
+       - File I/O
+       - JSON parsing
+   - Ensure all exceptions are caught and converted into:
+       - clean error messages
+       - structured return values
+       - or logged warnings
+
+3. **Logging Improvements**
+   - Add lightweight logging (print or logging module) to:
+       - workflow execution steps
+       - history operations
+       - API calls
+       - error paths
+   - Logging must be optional and controlled by config.
+
+4. **Config Hardening**
+   - Ensure shared/config.py:
+       - validates host/port
+       - resolves absolute paths
+       - exposes a safe temp directory
+       - provides defaults for missing fields
+
+5. **Protocol Validation**
+   - Ensure shared/protocol.py:
+       - validates incoming params
+       - validates workflow request structure
+       - validates workflow response structure
+       - provides helper functions for safe base64 decoding
+
+6. **History System Hardening**
+   - Ensure history.py:
+       - checks for missing files before loading
+       - handles corrupted meta.json gracefully
+       - ensures step directories are created safely
+       - ensures undo/redo boundaries are enforced
+       - ensures forward history truncation is safe
+
+7. **Workflow Mechanics Hardening**
+   - In plugin.py:
+       - ensure params.json is always written
+       - ensure missing masks are handled gracefully
+       - ensure invalid workflow names produce clean errors
+       - ensure ComfyUI failures do not crash GIMP
+       - ensure temporary files are cleaned up when appropriate
+
+8. **Utils Hardening**
+   - In utils.py:
+       - ensure image export handles missing layers
+       - ensure mask export handles empty selections
+       - ensure outpaint mask generation handles edge cases
+       - ensure file paths are validated before writing
+
+9. **Graceful Degradation**
+   - If ComfyUI is offline:
+       - plugin functions must fail gracefully
+       - UI stubs must show error messages
+       - no crashes or unhandled exceptions
+
+10. **Documentation Pass**
+    - Update README.md with:
+        - clear explanation of each module
+        - instructions for running the ComfyUI extension
+        - instructions for enabling logging
+        - explanation of the history system
+        - explanation of workflow templates
+
+============================================================
+FILES TO UPDATE IN THIS PROMPT
+============================================================
+
+You must update:
+
+- gimp_plugin/plugin.py
+- gimp_plugin/api_client.py
+- gimp_plugin/utils.py
+- comfy_extension/server_endpoints.py
+- comfy_extension/io_handlers.py
+- comfy_extension/workflow_loader.py
+- shared/config.py
+- shared/protocol.py
+- shared/types.py
+- shared/history.py
+- README.md
+
+All updates must be refinements, not new features.
+
+============================================================
+OUTPUT FORMAT
+============================================================
+
+Your output must be:
+- Updated code for all files listed above
+- Fully refined, hardened, and consistent
+- No new features
+- No architectural changes
+- No placeholders except where explicitly allowed
+
+Begin now.
+
+
+
+
+
+
+

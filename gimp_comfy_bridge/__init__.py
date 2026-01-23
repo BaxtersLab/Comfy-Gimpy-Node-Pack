@@ -1,0 +1,1 @@
+# GIMP ComfyUI Bridge
