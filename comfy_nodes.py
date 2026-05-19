@@ -109,12 +109,6 @@ except Exception as e:
     logger.warning(f"StyleTransferEngine not available: {e}")
     _STYLE_ENGINE_AVAILABLE = False
 
-# In some environments the advanced_ai package may not import cleanly
-# (syntax/errors or missing deps). Force graceful degradation by
-# defaulting to unavailable; if you have a working advanced_ai install,
-# remove the override below.
-_STYLE_ENGINE_AVAILABLE = False
-
 try:
     from gimp_comfy_bridge.fusion.blender import LoRABlender
     _LORA_BLENDER_AVAILABLE = True

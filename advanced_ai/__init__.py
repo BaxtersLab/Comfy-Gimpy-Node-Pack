@@ -389,5 +389,4 @@ if __name__ == "__main__":
         await shutdown_phase30()
         print("Phase 30 test complete")
 
-    asyncio.run(test_phase30())</content>
-<parameter name="filePath">c:\Users\Baxter\Documents\ComfyUI_env\ComfyUI\custom_nodes\Comfy Gimpy Node Pack\advanced_ai\__init__.py
+

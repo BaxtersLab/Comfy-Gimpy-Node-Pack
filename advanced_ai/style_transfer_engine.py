@@ -586,4 +586,3 @@ async def initialize_style_transfer_engine() -> StyleTransferEngine:
     if _style_transfer_engine is None:
         _style_transfer_engine = StyleTransferEngine()
     return _style_transfer_engine</content>
-<parameter name="filePath">c:\Users\Baxter\Documents\ComfyUI_env\ComfyUI\custom_nodes\Comfy Gimpy Node Pack\advanced_ai\style_transfer_engine.py

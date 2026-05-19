@@ -43,6 +43,10 @@ The project has 30 phases of development documented across 20+ PHASE_N_HANDOFF.m
 | `collaborative_studio/__init__.py` | **CREATED** — stub package with `get_collaborative_studio()`. Fixes crash-on-import in `advanced_ai/rest_api_system.py` and `advanced_ai/intelligent_automation.py`. |
 | `comfy_nodes.py` | **CREATED** — four ComfyUI node classes: CGP_VGG19StyleTransfer, CGP_LoRABlend, CGP_WorkflowFileLoader, CGP_GimpBridgeStatus |
 | `__init__.py` (root) | **UPDATED** — imports from comfy_nodes and registers all 4 nodes in NODE_CLASS_MAPPINGS |
+| `comfy_nodes.py` | **UPDATED** — removed `_STYLE_ENGINE_AVAILABLE = False` override; VGG19 node now live when deps present |
+| `advanced_ai/__init__.py` | **FIXED** — removed leaked XML content that would cause SyntaxError |
+| `advanced_ai/style_transfer_engine.py` | **FIXED** — removed leaked XML content that would cause SyntaxError |
+| `.gitignore` | **UPDATED** — added personal notes, ai_config.json, cache/, previews/, module block patterns |
 
 ---
 
@@ -122,3 +126,4 @@ Comfy-Gimpy-Node-Pack/
 | 2026-05-18 | Initial assessment. Confirmed zero ComfyUI nodes exist. Added root `__init__.py`, `requirements.txt`, `DEVNOTES.md`. Pack now loads in ComfyUI without crashing (empty node list). |
 | 2026-05-18 | Session 2: Created pyproject.toml and collaborative_studio stub. Both broken imports now resolve cleanly. |
 | 2026-05-18 | Session 3: Implemented full ComfyUI node layer. 4 nodes added. Pack is now functional. |
+| 2026-05-18 | Session 4: Removed `_STYLE_ENGINE_AVAILABLE = False` override — VGG19 node now activates when `advanced_ai` + PyTorch are importable. Fixed two `advanced_ai` files corrupted by leaked XML content. Updated `.gitignore` to exclude personal notes, ai_config.json, cache/, previews/; untracked those files. |

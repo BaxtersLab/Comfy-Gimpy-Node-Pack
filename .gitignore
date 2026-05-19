@@ -188,3 +188,18 @@ packs/temp/
 # Backup files
 *.bak
 *.backup
+
+# Personal notes / project summary text files
+comfy gimpy node pack.txt
+*.notes.txt
+
+# Runtime / personalized config
+ai_config.json
+
+# Generated runtime directories
+cache/
+previews/
+
+# Module instruction blocks (used during development, not part of the pack)
+*block*.txt
+module_blocks/
