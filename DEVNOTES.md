@@ -3,7 +3,7 @@
 
 ---
 
-## Current Status: STRUCTURAL SHIM ONLY — NO COMFYUI NODES IMPLEMENTED
+## Current Status: IMPORT-CLEAN — NO COMFYUI NODES IMPLEMENTED
 
 Session 1 (2026-05-18) assessed the repository. This codebase is a standalone application, not a ComfyUI node pack. A root `__init__.py` with empty mappings was added so ComfyUI loads it without crashing. No actual nodes exist yet.
 
@@ -39,6 +39,8 @@ The project has 30 phases of development documented across 20+ PHASE_N_HANDOFF.m
 | `__init__.py` (root) | **CREATED** with empty `NODE_CLASS_MAPPINGS`. Pack was invisible to ComfyUI (no root `__init__.py`). Now loads cleanly without crashing. |
 | `requirements.txt` | **CREATED** with actual runtime dependencies extracted from codebase imports. |
 | `DEVNOTES.md` | Created this file. |
+| `pyproject.toml` | **CREATED** — enables `pip install -e .`; declares all runtime dependencies. |
+| `collaborative_studio/__init__.py` | **CREATED** — stub package with `get_collaborative_studio()`. Fixes crash-on-import in `advanced_ai/rest_api_system.py` and `advanced_ai/intelligent_automation.py`. |
 
 ---
 
@@ -116,3 +118,4 @@ Comfy-Gimpy-Node-Pack/
 | Date | What happened |
 |---|---|
 | 2026-05-18 | Initial assessment. Confirmed zero ComfyUI nodes exist. Added root `__init__.py`, `requirements.txt`, `DEVNOTES.md`. Pack now loads in ComfyUI without crashing (empty node list). |
+| 2026-05-18 | Session 2: Created pyproject.toml and collaborative_studio stub. Both broken imports now resolve cleanly. |
